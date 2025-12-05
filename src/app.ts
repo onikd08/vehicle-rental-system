@@ -1,10 +1,13 @@
 import express, { Request, Response } from "express";
 import sendJson from "./helper/sendJson";
+import { initDB } from "./config/db";
 
 const app = express();
 
 // Parser
 app.use(express.json());
+// DB
+initDB();
 
 app.get("/", (req: Request, res: Response) => {
   const data = {
