@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import sendJson from "./helper/sendJson";
 import { initDB } from "./config/db";
+import { vehicleRoutes } from "./modules/vehicles/vehicles.routes";
 
 const app = express();
 
@@ -17,6 +18,9 @@ app.get("/", (req: Request, res: Response) => {
   };
   sendJson(res, data, 200);
 });
+
+// vehicle routes
+app.use("/api/v1/vehicles", vehicleRoutes);
 
 // Not found route
 app.use((req: Request, res: Response) => {
