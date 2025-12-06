@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { userServices } from "./users.services";
 import sendJson from "../../helper/sendJson";
+import { JwtPayload } from "jsonwebtoken";
 
 const getAllUsers = async (req: Request, res: Response) => {
   try {
@@ -33,7 +34,11 @@ const getAllUsers = async (req: Request, res: Response) => {
 const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    const result = await userServices.updateUser(id as string, req.body);
+    const result = await userServices.updateUser(
+      id as string,
+      req.body,
+      req.user as JwtPayload
+    );
     const data = {
       success: true,
       message: "User updated successfully",

@@ -29,6 +29,7 @@ app.use("/api/v1/users", userRoutes);
 
 // auth routes
 app.use("/api/v1/auth", authRoutes);
+
 // Not found route
 app.use((req: Request, res: Response) => {
   const data = {

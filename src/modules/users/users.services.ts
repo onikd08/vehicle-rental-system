@@ -1,3 +1,4 @@
+import { JwtPayload } from "jsonwebtoken";
 import { pool } from "../../config/db";
 
 const getAllUsers = async () => {
@@ -7,7 +8,14 @@ const getAllUsers = async () => {
   return result;
 };
 
-const updateUser = async (id: string, payload: Record<string, unknown>) => {
+const updateUser = async (
+  id: string,
+  payload: Record<string, unknown>,
+  loggedInUser: JwtPayload
+) => {
+  if (loggedInUser.id != id && loggedInUser.role !== "admin") {
+    throw new Error("You are not authorized to update this user");
+  }
   const targetUser = await pool.query(
     `
         SELECT * FROM users WHERE id = $1
