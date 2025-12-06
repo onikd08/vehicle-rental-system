@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import sendJson from "./helper/sendJson";
 import { initDB } from "./config/db";
 import { vehicleRoutes } from "./modules/vehicles/vehicles.routes";
+import { userRoutes } from "./modules/users/users.routes";
+import { authRoutes } from "./modules/auth/auth.routes";
 
 const app = express();
 
@@ -22,6 +24,11 @@ app.get("/", (req: Request, res: Response) => {
 // vehicle routes
 app.use("/api/v1/vehicles", vehicleRoutes);
 
+// user routes
+app.use("/api/v1/users", userRoutes);
+
+// auth routes
+app.use("/api/v1/auth", authRoutes);
 // Not found route
 app.use((req: Request, res: Response) => {
   const data = {
