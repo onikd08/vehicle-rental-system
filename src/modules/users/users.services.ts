@@ -16,6 +16,7 @@ const updateUser = async (
   if (loggedInUser.id != id && loggedInUser.role !== "admin") {
     throw new Error("You are not authorized to update this user");
   }
+  console.log(loggedInUser);
   const targetUser = await pool.query(
     `
         SELECT * FROM users WHERE id = $1
@@ -27,9 +28,7 @@ const updateUser = async (
     throw new Error(`User with id ${id} not found`);
   }
 
-  const targetUserRole = targetUser.rows[0].role;
-
-  if (targetUserRole !== "admin" && payload?.role) {
+  if (loggedInUser.role !== "admin" && payload?.role) {
     delete payload.role;
   }
 
