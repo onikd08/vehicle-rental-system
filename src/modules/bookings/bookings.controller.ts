@@ -25,9 +25,35 @@ const createBooking = async (req: Request, res: Response) => {
   }
 };
 
-const updateBooking = async (req: Request, res: Response) => {};
+const updateBooking = async (req: Request, res: Response) => {
+  try {
+  } catch (error: any) {
+    const data = {
+      success: false,
+      message: "Failed to update booking",
+      error: error.message,
+    };
+  }
+};
 
-const getAllBookings = async (req: Request, res: Response) => {};
+const getAllBookings = async (req: Request, res: Response) => {
+  try {
+    const result = await bookingServices.getAllBookings(req.user as JwtPayload);
+    const data = {
+      success: true,
+      message: "Bookings fetched successfully",
+      data: result,
+    };
+    sendJson(res, data, 200);
+  } catch (error: any) {
+    const data = {
+      success: false,
+      message: "Failed to get all bookings",
+      error: error.message,
+    };
+    sendJson(res, data, 500);
+  }
+};
 
 export const bookingController = {
   createBooking,
