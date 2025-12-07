@@ -4,8 +4,8 @@ import auth from "../../middleware/auth";
 
 const router = Router();
 
-router.get("/", auth("admin"), userController.getAllUsers);
-router.put("/:id", auth("admin", "customer"), userController.updateUser);
-router.delete("/:id", auth("admin"), userController.deleteUserById);
+router.get("/users", auth("admin"), userController.getAllUsers);
+router.put("/users/:id", auth("admin", "customer"), userController.updateUser);
+router.delete("/users/:id", auth("admin"), userController.deleteUserById);
 
 export const userRoutes = router;

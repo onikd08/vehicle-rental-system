@@ -6,6 +6,7 @@ import { userRoutes } from "./modules/users/users.routes";
 import { authRoutes } from "./modules/auth/auth.routes";
 
 const app = express();
+const baseURL = "/api/v1";
 
 // Parser
 app.use(express.json());
@@ -22,13 +23,13 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 // vehicle routes
-app.use("/api/v1/vehicles", vehicleRoutes);
+app.use(baseURL, vehicleRoutes);
 
 // user routes
-app.use("/api/v1/users", userRoutes);
+app.use(baseURL, userRoutes);
 
 // auth routes
-app.use("/api/v1/auth", authRoutes);
+app.use(baseURL, authRoutes);
 
 // Not found route
 app.use((req: Request, res: Response) => {
