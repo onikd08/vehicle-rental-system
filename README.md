@@ -127,7 +127,7 @@ npm run dev
 ## API Reference
 
 ```bash
-baseURL: http://localhost:8000/api/v1
+baseURL: http://localhost:8000/api/v1 || https://vehicle-rental-system-psi.vercel.app/api/v1
 ```
 
 #### Authentication
