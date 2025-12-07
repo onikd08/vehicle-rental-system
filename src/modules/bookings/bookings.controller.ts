@@ -47,12 +47,7 @@ const updateBooking = async (req: Request, res: Response) => {
 const getAllBookings = async (req: Request, res: Response) => {
   try {
     const result = await bookingServices.getAllBookings(req.user as JwtPayload);
-    const data = {
-      success: true,
-      message: "Bookings fetched successfully",
-      data: result,
-    };
-    sendJson(res, data, 200);
+    sendJson(res, result, 200);
   } catch (error: any) {
     const data = {
       success: false,

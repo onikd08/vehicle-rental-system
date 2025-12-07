@@ -3,7 +3,7 @@ import { pool } from "../../config/db";
 
 const getAllUsers = async () => {
   const result = await pool.query(`
-    SELECT * FROM users;
+    SELECT id, name, email, phone, role FROM users;
     `);
   return result;
 };
@@ -50,6 +50,25 @@ const updateUser = async (
 };
 
 const deleteUserById = async (id: string) => {
+  const targetUser = await pool.query(
+    `
+        SELECT * FROM users WHERE id = $1
+        `,
+    [id]
+  );
+
+  if (targetUser.rows.length === 0) {
+    throw new Error(`User with id ${id} not found`);
+  }
+  const user = await pool.query(
+    `
+        SELECT * FROM bookings WHERE customer_id = $1
+        `,
+    [id]
+  );
+  if (user.rows.length !== 0) {
+    throw new Error("User has active bookings");
+  }
   const result = await pool.query(
     `
         DELETE FROM users WHERE id = $1

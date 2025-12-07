@@ -55,10 +55,10 @@ const updateUser = async (req: Request, res: Response) => {
   }
 };
 
-const deleteUserById = (req: Request, res: Response) => {
+const deleteUserById = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    userServices.deleteUserById(id!);
+    const result = await userServices.deleteUserById(id!);
     const data = {
       success: true,
       message: "User deleted successfully",

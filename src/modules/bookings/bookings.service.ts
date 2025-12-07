@@ -157,17 +157,18 @@ const updateBooking = async (
 
 const getAllBookings = async (loggedInUser: JwtPayload) => {
   autoReturnExpiredBookings();
-  let result;
+  let transformed;
 
   if (loggedInUser.role !== "admin") {
-    result = await pool.query(
+    const customerBookings = await pool.query(
       `
       SELECT 
         b.*,
         u.name AS customer_name,
         u.email AS customer_email,
         v.vehicle_name,
-        v.registration_number
+        v.registration_number,
+        v.type
       FROM bookings b
       JOIN users u ON b.customer_id = u.id
       JOIN vehicles v ON b.vehicle_id = v.id
@@ -176,8 +177,29 @@ const getAllBookings = async (loggedInUser: JwtPayload) => {
       `,
       [loggedInUser.id]
     );
+
+    transformed = customerBookings.rows.map((row) => ({
+      id: row.id,
+      vehicle_id: row.vehicle_id,
+      rent_start_date: row.rent_start_date.toISOString().split("T")[0],
+      rent_end_date: row.rent_end_date.toISOString().split("T")[0],
+      total_price: row.total_price,
+      status: row.status,
+
+      vehicle: {
+        vehicle_name: row.vehicle_name,
+        registration_number: row.registration_number,
+        type: row.type,
+      },
+    }));
+
+    return {
+      success: true,
+      message: "Your bookings retrieved successfully",
+      data: transformed,
+    };
   } else {
-    result = await pool.query(`
+    const adminBookings = await pool.query(`
       SELECT 
         b.*,
         u.name AS customer_name,
@@ -189,29 +211,32 @@ const getAllBookings = async (loggedInUser: JwtPayload) => {
       JOIN vehicles v ON b.vehicle_id = v.id
       ORDER BY b.id
     `);
+    const transformed = adminBookings.rows.map((row) => ({
+      id: row.id,
+      customer_id: row.customer_id,
+      vehicle_id: row.vehicle_id,
+      rent_start_date: row.rent_start_date.toISOString().split("T")[0],
+      rent_end_date: row.rent_end_date.toISOString().split("T")[0],
+      total_price: row.total_price,
+      status: row.status,
+
+      customer: {
+        name: row.customer_name,
+        email: row.customer_email,
+      },
+
+      vehicle: {
+        vehicle_name: row.vehicle_name,
+        registration_number: row.registration_number,
+      },
+    }));
+
+    return {
+      success: true,
+      message: "Bookings retrieved successfully",
+      data: transformed,
+    };
   }
-
-  const transformed = result.rows.map((row) => ({
-    id: row.id,
-    customer_id: row.customer_id,
-    vehicle_id: row.vehicle_id,
-    rent_start_date: row.rent_start_date.toISOString().split("T")[0],
-    rent_end_date: row.rent_end_date.toISOString().split("T")[0],
-    total_price: Number(row.total_price),
-    status: row.status,
-
-    customer: {
-      name: row.customer_name,
-      email: row.customer_email,
-    },
-
-    vehicle: {
-      vehicle_name: row.vehicle_name,
-      registration_number: row.registration_number,
-    },
-  }));
-
-  return transformed;
 };
 
 export const bookingServices = {
