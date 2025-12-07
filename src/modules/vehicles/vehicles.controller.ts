@@ -63,7 +63,6 @@ const addNewVehicle = async (req: Request, res: Response) => {
   const payload = req.body;
   try {
     const result = await vehicleServices.addNewVehicle(payload);
-    console.log(result.rows[0]);
     if (result.rows.length === 0) {
       const data = {
         success: false,
