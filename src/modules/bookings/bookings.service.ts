@@ -1,6 +1,7 @@
 import { JwtPayload } from "jsonwebtoken";
 import { pool } from "../../config/db";
 import calculateBookingPrice from "../../helper/calculateBookingPrice";
+import autoReturnExpiredBookings from "../../helper/autoReturnExpiredBookings";
 
 const createBooking = async (
   payload: Record<string, unknown>,
@@ -64,16 +65,98 @@ const createBooking = async (
     rent_end_date,
     vehicle: {
       vehicle_name,
-      daily_rent_price,
+      daily_rent_price: Number(daily_rent_price),
     },
   };
 
   return data;
 };
 
-const updateBooking = async () => {};
+const updateBooking = async (
+  loggedInUser: JwtPayload,
+  bookingId: string,
+  payload: Record<string, unknown>
+) => {
+  const booking = await pool.query(`SELECT * FROM bookings WHERE id = $1`, [
+    bookingId,
+  ]);
+
+  if (booking.rows.length === 0) {
+    throw new Error("Booking not found");
+  }
+
+  if (loggedInUser.role === "customer") {
+    if (loggedInUser.id != booking.rows[0].customer_id) {
+      throw new Error("You are not authorized to update other user's booking");
+    }
+
+    if (payload.status !== "canceled") {
+      throw new Error("You can only cancel a booking");
+    }
+
+    const today = new Date();
+    const startDate = new Date(booking.rows[0].rent_start_date);
+
+    if (today >= startDate) {
+      throw new Error("Cannot cancel after the start date");
+    }
+
+    const result = await pool.query(
+      `
+      UPDATE bookings 
+      SET status = 'canceled'
+      WHERE id = $1
+      RETURNING *
+      `,
+      [bookingId]
+    );
+
+    return {
+      success: true,
+      message: "Booking canceled successfully",
+      data: result.rows[0],
+    };
+  }
+
+  if (loggedInUser.role === "admin") {
+    if (payload.status !== "returned") {
+      throw new Error("Admin can only update to 'returned'");
+    }
+
+    const updatedBooking = await pool.query(
+      `
+      UPDATE bookings 
+      SET status = 'returned'
+      WHERE id = $1
+      RETURNING *
+      `,
+      [bookingId]
+    );
+
+    await pool.query(
+      `
+      UPDATE vehicles
+      SET availability_status = 'available'
+      WHERE id = $1
+      `,
+      [booking.rows[0].vehicle_id]
+    );
+
+    return {
+      success: true,
+      message: "Booking marked as returned. Vehicle is now available",
+      data: {
+        ...updatedBooking.rows[0],
+        vehicle: {
+          availability_status: "available",
+        },
+      },
+    };
+  }
+};
 
 const getAllBookings = async (loggedInUser: JwtPayload) => {
+  autoReturnExpiredBookings();
   let result;
 
   if (loggedInUser.role !== "admin") {
@@ -89,7 +172,7 @@ const getAllBookings = async (loggedInUser: JwtPayload) => {
       JOIN users u ON b.customer_id = u.id
       JOIN vehicles v ON b.vehicle_id = v.id
       WHERE b.customer_id = $1
-      ORDER BY b.id DESC
+      ORDER BY b.id
       `,
       [loggedInUser.id]
     );
